@@ -212,3 +212,41 @@ dialog :focus-visible { outline-color: #ffd36b; }
   .seg input:checked + span { outline: 2px solid CanvasText; }
   .pin circle.main { stroke: CanvasText; }
 }
+
+/* ===== Classic look (matches the private log's original design) ===== */
+.stats { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 8px; }
+.stats .tally { display: flex; flex-wrap: wrap; gap: 14px 28px; margin: 0; font-family: var(--f-data); }
+.stats .tally span { display: grid; font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.stats .tally b { font-size: 1.8rem; font-weight: 500; line-height: 1.1; color: var(--ink); letter-spacing: 0; margin: 0; font-variant-numeric: tabular-nums; }
+.seg.tabs { background: none; border: 0; padding: 0; gap: 8px; }
+.seg.tabs > label > span { border: 1px solid var(--line); background: var(--paper); }
+.seg.tabs input:checked + span { border-color: var(--accent); }
+.card .sub { display: block; }
+.card .sub .d { display: inline; }
+.seg input:checked + span { background: var(--ink); color: var(--bg); }
+.seg.tabs input:checked + span { background: var(--accent); color: var(--accent-ink); }
+.search { border-radius: 8px; }
+.grid { gap: 14px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; gap: 0; transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.card .ph { border-radius: 0; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -18px rgba(10, 30, 24, .45); border-color: transparent; }
+.card:hover .ph { transform: none; box-shadow: none; }
+.card:hover img { transform: scale(1.05); }
+.card img { transition: transform .4s ease; }
+.card:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.card:focus-visible .ph { outline: none; }
+.card .meta { padding: 10px 12px 12px; display: grid; gap: 3px; min-width: 0; }
+.card .meta strong { font-family: var(--f-display); font-weight: 500; font-size: 1.05rem; }
+.card .sub { font-size: .85rem; flex-wrap: wrap; }
+.card .sub .pl { white-space: normal; overflow: visible; }
+.who { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold-fill); display: inline-block; }
+.dot.c { background: var(--accent); }
+@media (max-width: 600px) {
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+  .card .sub .pl { display: inline; }
+  .stats .tally { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+}
+
+/* nested label text inside a pill stays plain */
+.seg label > span span { padding: 0; min-height: 0; display: inline; border: 0; background: none; font-size: inherit; }

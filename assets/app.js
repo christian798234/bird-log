@@ -85,10 +85,11 @@
     const li = el("li");
     const b = el("button", "card"); b.type = "button";
     const ph = el("div", "ph"); const im = el("img"); im.loading = "lazy"; im.decoding = "async"; im.src = img(p, "s"); im.alt = ""; ph.append(im);
-    const top = el("div", "mtop"); top.append(el("strong", "", name(p)));
-    const av = el("span", "av" + (p.by === "Christian" ? " c" : ""), (p.by || "?").charAt(0)); av.setAttribute("aria-hidden", "true"); top.append(av);
+    const meta = el("div", "meta");
     const sub = el("div", "sub"); sub.append(el("span", "d", fmt(p.date))); if (p.place) sub.append(el("span", "pl", p.place));
-    b.append(ph, top, sub);
+    const who = el("div", "who"); const dot = el("span", "dot" + (p.by === "Christian" ? " c" : "")); dot.setAttribute("aria-hidden", "true"); who.append(dot, p.by || "");
+    meta.append(el("strong", "", name(p)), sub, who);
+    b.append(ph, meta);
     b.setAttribute("aria-label", alt(p) + ". Open photo.");
     b.onclick = () => openViewer(i, list, b);
     li.append(b); return li;

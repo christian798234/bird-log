@@ -23,7 +23,6 @@
     <div class="mast-text">
       <h1>Madi &amp; Christian's Photo <span class="accent">Bird Log</span></h1>
       <p>Every bird (and the odd bug) we've photographed together, with where and when we saw it.</p>
-      <p class="statline" id="statline" aria-live="polite">Loading photos…</p>
     </div>
   </header>
 
@@ -57,6 +56,15 @@
 
     <section aria-labelledby="galleryTitle" id="gallery" tabindex="-1">
       <form class="toolbar" id="filters" role="search" aria-label="Find photos" onsubmit="return false">
+        <div class="stats">
+          <p class="tally" id="statline" aria-live="polite">Loading photos…</p>
+          <fieldset class="seg tabs">
+            <legend class="vh">Category</legend>
+            <label><input type="radio" name="cat" value="all" checked><span>Everything <i id="nAll"></i></span></label>
+            <label><input type="radio" name="cat" value="bird"><span>Birds <i id="nBird"></i></span></label>
+            <label><input type="radio" name="cat" value="critter"><span><span>Animals<span class="long"> &amp; insects</span></span> <i id="nCritter"></i></span></label>
+          </fieldset>
+        </div>
         <div class="tb-row">
           <label class="search">
             <span class="vh">Search species, place or note</span>
@@ -64,14 +72,8 @@
             <input id="q" type="search" placeholder="Search species, place or note" autocomplete="off">
           </label>
           <fieldset class="seg">
-            <legend class="vh">Category</legend>
-            <label><input type="radio" name="cat" value="all" checked><span>All <i id="nAll"></i></span></label>
-            <label><input type="radio" name="cat" value="bird"><span>Birds <i id="nBird"></i></span></label>
-            <label><input type="radio" name="cat" value="critter"><span><span>Animals<span class="long"> &amp; insects</span></span> <i id="nCritter"></i></span></label>
-          </fieldset>
-          <fieldset class="seg">
             <legend class="vh">Photographer</legend>
-            <label><input type="radio" name="who" value="all" checked><span>Both</span></label>
+            <label><input type="radio" name="who" value="all" checked><span>Both of us</span></label>
             <label><input type="radio" name="who" value="Christian"><span>Christian</span></label>
             <label><input type="radio" name="who" value="Madi"><span>Madi</span></label>
           </fieldset>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Madi &amp; Christian's Photo Bird Log</title>
+<meta name="description" content="Every bird (and the odd bug) Madi and Christian have photographed together in Texas and Colorado, with where and when they saw it.">
+<meta property="og:title" content="Madi & Christian's Photo Bird Log">
+<meta property="og:description" content="Our shared bird photos: slideshow, life list and map.">
+<meta property="og:type" content="website">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M10 40c8 0 14-4 18-12 3-6 8-10 15-10 5 0 9 3 10 7l5 2-5 3c0 12-9 20-22 20H12' fill='%232c6a58'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<a class="skip" href="#gallery">Skip to the photos</a>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="mast-text">
+      <h1>Madi &amp; Christian's Photo <span class="accent">Bird Log</span></h1>
+      <p>Every bird (and the odd bug) we've photographed together, with where and when we saw it.</p>
+      <p class="statline" id="statline" aria-live="polite">Loading photos…</p>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="show" aria-roledescription="carousel" aria-labelledby="showTitle" id="show" hidden>
+      <h2 id="showTitle" class="vh">Featured photos</h2>
+      <div class="hero" id="hero" aria-live="off">
+        <img class="hero-back" id="heroBack" alt="" aria-hidden="true">
+        <img class="hero-img" id="heroA" alt="">
+        <img class="hero-img" id="heroB" alt="" aria-hidden="true">
+      </div>
+      <div class="hero-bar" aria-hidden="true"><i id="heroProg"></i></div>
+      <div class="hero-foot">
+        <button type="button" class="hero-cap" id="heroCap">
+          <strong id="heroSpecies"></strong>
+          <span id="heroMeta"></span>
+          <span class="vh">Open this photo</span>
+        </button>
+        <div class="hero-ctrl" role="group" aria-label="Slideshow controls">
+          <button type="button" id="heroPlay" aria-label="Pause slideshow"><span aria-hidden="true" id="heroPlayIcon">❚❚</span></button>
+          <button type="button" id="heroPrev" aria-label="Previous featured photo"><span aria-hidden="true">‹</span></button>
+          <button type="button" id="heroNext" aria-label="Next featured photo"><span aria-hidden="true">›</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="otd" id="otd" aria-labelledby="otdTitle" hidden>
+      <div class="sec-head"><h2 id="otdTitle">On this day</h2><span id="otdSub" class="count"></span></div>
+      <ul class="otd-row" id="otdRow"></ul>
+    </section>
+
+    <section aria-labelledby="galleryTitle" id="gallery" tabindex="-1">
+      <form class="toolbar" id="filters" role="search" aria-label="Find photos" onsubmit="return false">
+        <div class="tb-row">
+          <label class="search">
+            <span class="vh">Search species, place or note</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input id="q" type="search" placeholder="Search species, place or note" autocomplete="off">
+          </label>
+          <fieldset class="seg">
+            <legend class="vh">Category</legend>
+            <label><input type="radio" name="cat" value="all" checked><span>All <i id="nAll"></i></span></label>
+            <label><input type="radio" name="cat" value="bird"><span>Birds <i id="nBird"></i></span></label>
+            <label><input type="radio" name="cat" value="critter"><span><span>Animals<span class="long"> &amp; insects</span></span> <i id="nCritter"></i></span></label>
+          </fieldset>
+          <fieldset class="seg">
+            <legend class="vh">Photographer</legend>
+            <label><input type="radio" name="who" value="all" checked><span>Both</span></label>
+            <label><input type="radio" name="who" value="Christian"><span>Christian</span></label>
+            <label><input type="radio" name="who" value="Madi"><span>Madi</span></label>
+          </fieldset>
+        </div>
+        <div class="tb-row">
+          <label class="sel"><span>Species</span>
+            <select id="species"><option value="">All species</option></select>
+          </label>
+          <label class="sel"><span>Sort</span>
+            <select id="sort">
+              <option value="new">Newest first</option>
+              <option value="old">Oldest first</option>
+              <option value="az">Name A–Z</option>
+              <option value="best">Best shots first</option>
+            </select>
+          </label>
+          <button type="button" class="linkbtn" id="reset" hidden>Clear filters</button>
+        </div>
+      </form>
+
+      <div class="wall-head">
+        <h2 id="galleryTitle">All sightings</h2>
+        <fieldset class="seg view">
+          <legend class="vh">View</legend>
+          <label><input type="radio" name="view" value="grid" checked><span>Photos</span></label>
+          <label><input type="radio" name="view" value="map"><span>Map</span></label>
+          <label><input type="radio" name="view" value="life"><span>Life list</span></label>
+        </fieldset>
+      </div>
+      <p class="count" id="count" role="status" aria-live="polite"></p>
+
+      <div id="gridView">
+        <ul class="grid" id="grid"></ul>
+        <div class="more"><button type="button" class="btn" id="more" hidden>Show more</button></div>
+      </div>
+
+      <div id="mapView" class="mapwrap" hidden>
+        <div class="mapbox" id="mapBox">
+          <svg id="mapSvg" role="group" aria-labelledby="mapDesc" focusable="false"><title id="mapDesc">Map of the places where the photos were taken. Each dot is a place; the same places are listed next to the map.</title><g id="mapShapes"></g><g id="mapLabels"></g><g id="mapPins"></g></svg>
+          <div class="mapctl" role="group" aria-label="Map zoom">
+            <button type="button" id="mapIn" aria-label="Zoom in"><span aria-hidden="true">+</span></button>
+            <button type="button" id="mapOut" aria-label="Zoom out"><span aria-hidden="true">−</span></button>
+            <button type="button" id="mapFit" class="fit" aria-label="Show all places">ALL</button>
+          </div>
+          <div class="maplegend" aria-hidden="true">
+            <span><i class="lg-c"></i>Christian</span><span><i class="lg-m"></i>Madi</span><span><i class="lg-b"></i>Both</span>
+          </div>
+        </div>
+        <div class="places">
+          <h3>Places</h3>
+          <p class="note">Select a place to see its photos.</p>
+          <ul id="placeList"></ul>
+        </div>
+      </div>
+
+      <div id="lifeView" hidden>
+        <div class="tablewrap">
+          <table class="life">
+            <caption class="vh">Life list: every species photographed, with the date it was first seen</caption>
+            <thead><tr><th scope="col">Species</th><th scope="col" class="num">Photos</th><th scope="col">First seen</th><th scope="col">Photographed by</th></tr></thead>
+            <tbody id="lifeBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>Madi &amp; Christian's Photo Bird Log</span>
+    <span id="updated"></span>
+    <span>Many photos are also on <a href="https://ebird.org">eBird</a> and the <a href="https://www.macaulaylibrary.org">Macaulay Library</a>.</span>
+  </footer>
+</div>
+
+<dialog id="viewer" aria-labelledby="vTitle">
+  <div class="viewer">
+    <img id="vImg" alt="">
+    <div class="vbar">
+      <div class="vcap">
+        <h2 id="vTitle"></h2>
+        <p id="vSci" class="sci"></p>
+        <p id="vMeta"></p>
+        <p id="vNote" class="vnote"></p>
+      </div>
+      <div class="vbtns">
+        <a id="vLink" target="_blank" rel="noopener">On Macaulay Library<span class="vh"> (opens in a new tab)</span></a>
+        <button type="button" id="vPrev" aria-label="Previous photo"><span aria-hidden="true">‹</span></button>
+        <button type="button" id="vNext" aria-label="Next photo"><span aria-hidden="true">›</span></button>
+        <button type="button" id="vClose" aria-label="Close photo"><span aria-hidden="true">✕</span></button>
+      </div>
+    </div>
+    <p class="vh" id="vPos" aria-live="polite"></p>
+  </div>
+</dialog>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

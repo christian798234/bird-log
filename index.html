@@ -442,6 +442,7 @@ dialog::backdrop { background: var(--shade); }
 .dupe.rm .dupelab { color: var(--danger); }
 .btn.danger[disabled] { opacity: .5; }
 .chip.syncchip { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.status.ok { color: var(--accent); font-weight: 600; }
 </style>
 
 <div class="wrap" id="app">
@@ -510,6 +511,7 @@ dialog::backdrop { background: var(--shade); }
     <div class="menuwrap" id="menuWrap">
       <button type="button" class="btn iconbtn" id="moreMenuBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="moreMenu" aria-label="More tools">⋯</button>
       <div class="menu" id="moreMenu" role="menu" hidden>
+        <button type="button" role="menuitem" data-tool="syncnow"><b>Sync now</b><small>Add queued eBird photos and update the public site</small></button>
         <button type="button" role="menuitem" data-tool="sync"><b>Sync from eBird</b><small>Add new photos from your checklists</small></button>
         <button type="button" role="menuitem" data-tool="dupes"><b>Find duplicates</b><small>Clean up near-identical shots</small></button>
         <button type="button" role="menuitem" data-tool="rate"><b>Pick best shots with Claude</b><small>Score photos for the slideshow and highlights</small></button>
@@ -802,11 +804,13 @@ dialog::backdrop { background: var(--shade); }
       }
     }
     const queued = (state.syncReqs || []).filter((r) => r.status === "pending").reduce((n, r) => n + (r.rows || []).length, 0);
-    if (queued) {
+    const sm = state.syncMeta || {};
+    const syncing = sm.status === "running" && Date.now() - (sm.startedAt || 0) < 30 * 60e3;
+    if (!PUBLIC && (queued || syncing)) {
       const b = document.createElement("button");
-      b.type = "button"; b.className = "chip syncchip"; b.textContent = "eBird: " + queued + " photos on the way";
-      b.title = "Queued from an eBird export; added at the next daily sync";
-      b.onclick = () => tools.sync();
+      b.type = "button"; b.className = "chip syncchip";
+      b.textContent = syncing ? "Syncing…" : "eBird: " + queued + " photos waiting · Sync now";
+      b.onclick = () => tools.syncnow();
       chips.append(b);
     }
     if (state.placeSel) {
@@ -1629,6 +1633,7 @@ dialog::backdrop { background: var(--shade); }
   try { if (localStorage.getItem("birdlog.view") === "map") setView("map"); } catch (e) {}
 
   // ---------- Tools: ⋯ menu, On this day, duplicates, Claude picks, eBird sync ----------
+  const SYNC_TRIGGER = "trig_01SuV5Y4rzWcfzYp1JwtV6bT"; // the on-demand "Bird log Sync now" task
   const HIGHLIGHTS_URL = "https://claude.ai/artifact/BvZnyyB3SFBhePdyVkeXa8";
   const toast2 = (m) => toast(m);
   function setMenu(open) {
@@ -1845,10 +1850,47 @@ dialog::backdrop { background: var(--shade); }
       body.append(lab, cost, status, actionsRow(button("Cancel", "", closeTool), go));
     },
 
+    // ----- Sync now: start the on-demand sync task through the Claude Code connector -----
+    async syncnow(lead) {
+      const body = toolDialog("Sync now", lead || "Adds any photos queued from eBird to the log and updates the public website. It runs in the background and usually takes a few minutes; you can close this and keep using the log.");
+      const m = state.syncMeta || {};
+      const running = m.status === "running" && Date.now() - (m.startedAt || 0) < 30 * 60e3;
+      const info = el2("p", "note");
+      if (running) info.textContent = "A sync started " + new Date(m.startedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + " and is still running.";
+      else if (m.finishedAt) info.textContent = "Last sync: " + new Date(m.finishedAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + (m.summary ? " · " + m.summary : "");
+      const queued = (state.syncReqs || []).filter((r) => r.status === "pending").reduce((n, r) => n + (r.rows || []).length, 0);
+      if (queued && !lead) body.append(el2("p", "infobox", queued + " photos are waiting to be added."));
+      if (info.textContent) body.append(info);
+      const status = el2("p", "status"); status.setAttribute("role", "status");
+      const go = button(running ? "Start another sync" : "Sync now", "primary", null);
+      const why = (e) => ({
+        needs_reauth: "Your Claude Code connection needs signing in again: reconnect it in claude.ai Settings → Connectors, then try again.",
+        server_not_connected: "Sync now uses claude.ai's Claude Code connection, which this account doesn't have. Open the log signed in as Christian, or ask Christian to press Sync now.",
+        not_in_manifest: "Sync now needs your OK to use Claude Code from this page. Press it again and choose Allow when claude.ai asks.",
+        approval_required: "Sync now needs your OK to use Claude Code from this page. Press it again and choose Allow when claude.ai asks.",
+        blocked_by_policy: "Your organization's settings don't allow starting tasks from this page.",
+        tool_error: "Claude Code couldn't start the sync. Only Christian's account can start it; if you are Christian, try again in a minute.",
+      }[e && e.code] || "Couldn't start the sync right now. Check your connection and try again in a minute.");
+      go.onclick = async () => {
+        go.disabled = true; status.className = "status"; status.textContent = "Starting the sync…";
+        const mcp = await claude.use("mcp");
+        if (!mcp) { status.className = "status err"; status.textContent = why({ code: "server_not_connected" }); go.disabled = false; return; }
+        try {
+          await mcp.callTool("Claude Code Remote", "fire_trigger", { trigger_id: SYNC_TRIGGER }, { cache: false });
+          try { await state.db.doc("meta/sync").set({ ...m, status: "running", startedAt: Date.now(), startedBy: state.me || "" }); } catch (e) {}
+          status.className = "status ok"; status.textContent = "Sync started. New photos show up here in a few minutes, and the public site updates soon after.";
+          go.textContent = "Started"; toast2("Sync started");
+        } catch (e) {
+          status.className = "status err"; status.textContent = why(e); go.disabled = false;
+        }
+      };
+      body.append(status, actionsRow(button("Close", "", closeTool), go));
+    },
+
     // ----- eBird sync -----
     sync() {
       const body = toolDialog("Sync from eBird",
-        "Add new photos from your eBird checklists. Export your photo list from the Macaulay Library, choose the file here, and the new photos are added within a day.");
+        "Add new photos from your eBird checklists. Export your photo list from the Macaulay Library, choose the file here, then press Sync now to add them.");
       const steps = el2("ol", "steps");
       const li1 = el2("li"); li1.append("Open your photos in the Macaulay Library while signed in to eBird: ");
       for (const [name, id] of [["Christian", "USER6346481"], ["Madi", "USER6944046"]]) {
@@ -1860,7 +1902,7 @@ dialog::backdrop { background: var(--shade); }
       const pend = (state.syncReqs || []).filter((r) => r.status === "pending");
       if (pend.length) {
         const n = pend.reduce((s, r) => s + (r.rows || []).length, 0);
-        body.append(el2("p", "infobox", n + " photos are already queued and will be added at the next daily sync."));
+        body.append(el2("p", "infobox", n + " photos are already queued. Press Sync now to add them."));
       }
       const last = (state.syncReqs || []).filter((r) => r.status === "done").sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0))[0];
       if (last) body.append(el2("p", "note", "Last sync: " + new Date(last.doneAt).toLocaleDateString() + " · " + (last.added || 0) + " photos added."));
@@ -1903,8 +1945,8 @@ dialog::backdrop { background: var(--shade); }
           for (let i = 0; i < fresh.length; i += 250) {
             await state.db.collection("syncRequests").add({ status: "pending", by: state.me || "", recordist, createdAt: Date.now(), rows: fresh.slice(i, i + 250) });
           }
-          tools.busy = false; closeTool();
-          toast2(fresh.length + " photos queued · they'll appear within a day");
+          tools.busy = false;
+          tools.syncnow(fresh.length + " photos queued. Press Sync now to add them to the log and the public site.");
         } catch (e) { tools.busy = false; go.disabled = false; out.append(el2("p", "status err", "Couldn't queue the photos. Check your connection and try again.")); }
       };
       body.append(pick, out, actionsRow(button("Cancel", "", closeTool), go));
@@ -1953,6 +1995,10 @@ dialog::backdrop { background: var(--shade); }
       $("status").hidden = false;
       $("status").textContent = state.loaded ? "Can't reach the album right now; showing what was loaded." : "Still trying to reach the album…";
     }, 10000);
+    if (!PUBLIC) db.doc("meta/sync").onSnapshot((d) => {
+      const prev = state.syncMeta; state.syncMeta = d.exists ? d.data() : null; render();
+      if (prev && prev.status === "running" && state.syncMeta && state.syncMeta.status === "done") toast2("Sync finished" + (state.syncMeta.added ? " · " + state.syncMeta.added + " photos added" : ""));
+    }, () => {});
     db.collection("syncRequests").onSnapshot((snap) => {
       state.syncReqs = snap.docs.map((d) => ({ id: d.id, ...d.data() })); render();
     }, () => {});
